@@ -12,7 +12,11 @@ function add1(a:number,b:number):number{
 }
 
 
-const y = add1(1,2);
+const y = add1(1,num1);
 console.log("add two num:",y);
+
+
+num1 = y 
+console.log(num1)
 
 // if we give type any than it same like javascript 
