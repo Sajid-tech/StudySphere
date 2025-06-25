@@ -1,4 +1,7 @@
+
+
 let num1 :number  = 100 
+
 // let num1 = 100 
 num1 = 1
 
