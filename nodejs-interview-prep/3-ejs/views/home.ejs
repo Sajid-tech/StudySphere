@@ -1,0 +1,16 @@
+<%- include('components/header') %>
+
+<main style="padding: 40px; font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; min-height: 80vh;">
+  <h1 style="font-size: 32px; margin-bottom: 10px;">🏠 Welcome to the Home Page</h1>
+  <label style="display: block; margin-bottom: 20px; font-weight: bold; color: #334155;">📦 List of Products</label>
+
+  <ul style="list-style: none; padding-left: 0;">
+    <% products.forEach((item) => { %>
+      <li style="background-color: #e2e8f0; margin-bottom: 10px; padding: 10px 15px; border-radius: 6px; color: #1e293b;">
+        <%= item.title %>
+      </li>
+    <% }) %>
+  </ul>
+</main>
+
+<%- include('components/footer') %>
