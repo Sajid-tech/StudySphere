@@ -57,7 +57,49 @@ app.post('/add',(req,res)=>{
 })
 
 
+
+
+
 // update a book 
+
+app.put('/update/:id', (req, res) => {
+    const findCurrentBook = books.find((bookItem) => bookItem.id === req.params.id);
+
+    // if (!req.body) {
+    //     return res.status(400).json({ msg: "No body found in request" ,data:findCurrentBook});
+    // }
+    if (findCurrentBook) {
+       
+        findCurrentBook.title = req.body?.title || findCurrentBook.title;
+
+        return res.status(200).json({
+            msg: `Book with ID ${req.params.id} updated successfully`,
+            data: findCurrentBook
+        });
+    } else {
+        return res.status(400).json({ msg: "Book Not Found" });
+    }
+});
+
+
+//detelt eteh book 
+
+app.delete('/delete/:id',(req,res)=>{
+    const findIndexofCurrentBook = books.findIndex((item)=> item.id === req.params.id)
+
+    if(findIndexofCurrentBook){
+        const deletedBook = books.splice(findIndexofCurrentBook,1)
+       res.status(200).json({
+        msg:"Book delete succesfully",
+        data:deletedBook,
+       })
+    }else {
+        res.status(400).json({
+            msg:"Book not found"
+        })
+    }
+})
+
 const port = 3000 
 
 app.listen(port,()=>{
