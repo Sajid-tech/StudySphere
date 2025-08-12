@@ -1,52 +1,80 @@
 const { uploadToCloudinary } = require('../helpers/cloudinaryHelper')
 const Image = require('../models/Image')
+const fs = require('fs')
+
+const uploadImageController = async (req, res) => {
+  try {
+    //check if file is missing in req object
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "File is required. Please upload an image",
+      });
+    }
+
+    //upload to cloudinary
+    const { url, publicId } = await uploadToCloudinary(req.file.path);
+
+    //store the image url and public id along with the uploaded user id in database
+    const newlyUploadedImage = new Image({
+      url,
+      publicId,
+      uploadedBy: req.userInfo.userId,
+    });
+
+    await newlyUploadedImage.save();
+
+    // delete the file from local stroage: it take the callback in v14 
+    // fs.unlink(req.file.path,(err)=>{
+    //     if(err){
+    //         console.error("Eror deleting file",file)
+    //     }
+    // })
+    //OR
+
+    // await fs.promises.unlink(req.file.path)
+
+    //OR 
+
+    fs.unlinkSync(req.file.path)
+    res.status(201).json({
+      success: true,
+      message: "Imaged uploaded successfully",
+      image: newlyUploadedImage,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong! Please try again",
+    });
+  }
+};
 
 
-const uploadImage = async(req,res)=>{
-    try {
+// fetch all image 
 
-        //check if file is missing in req object 
+const fetchImageController = async(req,res)=>{
+    try{
+        const images = await Image.find({})
 
-        if (!req.file){
-            return res.status(400).json({
-                success:false,
-                msg:"File is required , Pls upload the img"
+        if(images){
+            res.status(200).json({
+                succes:true,
+                data:images
             })
         }
-
-        // upload to cloudinary 
-        const {url,publicId} = await uploadToCloudinary(req.file.path)
-
-        // stored th eimag eurl and the public id along with the uploaded user id in db 
-
-        const newlyUploadedImage = new Image({
-            url,
-            publicId,
-            uploadedBy:req.UserInfo.userId
-        })
-
-        await newlyUploadedImage.save()
-
-        res.status(201).json({
-            success:true,
-            msg:"Image uploaded successfully",
-            image :newlyUploadedImage
-        })
-
-
-        
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({
-            success:false,
-            msg:"Something Went wrong! Please try again"
-        })
-    }
+    }catch(error){
+         console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong! Please try again",
+    });
+  }
+    
 }
+module.exports = {
+  uploadImageController,
+  fetchImageController
 
-
-module.exports={
-    uploadImage
-}
-
-
+};

@@ -5,7 +5,7 @@ dotenv.config()
 const authRoutes = require('./routes/auth-routes')
 const homeRoutes = require('./routes/home-routes')
 const adminRoutes = require('./routes/admin-routes')
-
+const uploadImageRoutes = require('./routes/image-routes')
 const User = require('./models/User')
 
 
@@ -24,6 +24,7 @@ app.use(express.json())
 app.use('/api/auth',authRoutes)
 app.use('/api/home',homeRoutes)
 app.use('/api/admin',adminRoutes)
+app.use('/api/image',uploadImageRoutes)
 
 
 
