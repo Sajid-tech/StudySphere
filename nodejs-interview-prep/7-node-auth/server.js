@@ -7,6 +7,7 @@ const homeRoutes = require('./routes/home-routes')
 const adminRoutes = require('./routes/admin-routes')
 const uploadImageRoutes = require('./routes/image-routes')
 const User = require('./models/User')
+const Image = require('./models/Image')
 
 
 // connect to db 
@@ -31,8 +32,9 @@ app.use('/api/image',uploadImageRoutes)
 
 // maintence check
 app.get('/health',async (req,res)=>{
-    const user = await User.find({})
-    console.log("user",)
+    // const user = await User.find({})
+    const user = await Image.find({})
+
     res.status(200).json({
         msg:"working fine!",
         data:user

@@ -1,7 +1,7 @@
-const { uploadToCloudinary } = require('../helpers/cloudinaryHelper')
-const Image = require('../models/Image')
-const fs = require('fs')
-
+const { uploadToCloudinary } = require("../helpers/cloudinaryHelper");
+const Image = require("../models/Image");
+const fs = require("fs");
+const cloudinary = require('../config/cloudinary')
 const uploadImageController = async (req, res) => {
   try {
     //check if file is missing in req object
@@ -24,7 +24,7 @@ const uploadImageController = async (req, res) => {
 
     await newlyUploadedImage.save();
 
-    // delete the file from local stroage: it take the callback in v14 
+    // delete the file from local stroage: it take the callback in v14
     // fs.unlink(req.file.path,(err)=>{
     //     if(err){
     //         console.error("Eror deleting file",file)
@@ -34,9 +34,9 @@ const uploadImageController = async (req, res) => {
 
     // await fs.promises.unlink(req.file.path)
 
-    //OR 
+    //OR
 
-    fs.unlinkSync(req.file.path)
+    fs.unlinkSync(req.file.path);
     res.status(201).json({
       success: true,
       message: "Imaged uploaded successfully",
@@ -51,30 +51,105 @@ const uploadImageController = async (req, res) => {
   }
 };
 
+// fetch all image
 
-// fetch all image 
+// const fetchImageController = async (req, res) => {
+//   try {
+//     const images = await Image.find({});
 
-const fetchImageController = async(req,res)=>{
-    try{
-        const images = await Image.find({})
+//     if (images) {
+//       res.status(200).json({
+//         succes: true,
+//         data: images,
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Something went wrong! Please try again",
+//     });
+//   }
+// };
 
-        if(images){
-            res.status(200).json({
-                succes:true,
-                data:images
-            })
-        }
-    }catch(error){
-         console.log(error);
+// add the pagination and sorting here 
+const fetchImageController = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 2   // limits how many images you want to show
+    const skip =(page-1)* limit // how many item data want to skip
+
+
+
+    const sortBy = req.query.sortBy || 'createdAt'
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1
+    const totalImages = await Image.countDocuments()   // give the length 
+
+    const totalPages = Math.ceil(totalImages/limit)
+    const sortObj ={}
+    sortObj[sortBy] = sortOrder
+    const images = await Image.find({}).sort(sortBy).skip(skip).limit(limit);
+
+    if (images) {
+      res.status(200).json({
+        succes: true,
+ 
+        currentPage:page,
+        totalPages : totalPages,
+        totalImages:totalImages,
+               data: images,
+      });
+    }
+  } catch (error) {
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong! Please try again",
     });
   }
-    
-}
+};
+const deleteImageController = async (req, res) => {
+  try {
+    const getCurrentIdOfImageToBeDeleted = req.params.id;
+    const userId = req.userInfo.userId;
+
+    const image = await Image.findById(getCurrentIdOfImageToBeDeleted);
+
+    if (!image) {
+      return res.status(404).json({
+        success: false,
+        message: "Image not found",
+      });
+    }
+
+    //check if this image is uploaded by the current user who is trying to delete this image
+    if (image.uploadedBy.toString() != userId) {
+      return res.status(403).json({
+        success: false,
+        message: `You are not authorized to delete this image because you haven't uploaded it`,
+      });
+    }
+
+    //delete this image first from your cloudinary stroage
+    await cloudinary.uploader.destroy(image.publicId);
+
+    //delete this image from mongodb database
+    await Image.findByIdAndDelete(getCurrentIdOfImageToBeDeleted);
+
+    res.status(200).json({
+      success: true,
+      message: "Image deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong! Please try again",
+    });
+  }
+};
 module.exports = {
   uploadImageController,
-  fetchImageController
-
+  fetchImageController,
+  deleteImageController
 };
